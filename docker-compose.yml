@@ -1,0 +1,38 @@
+version: "3.7"
+
+services:
+  app:
+    build:
+      context: ./docker
+      dockerfile: Dockerfile
+    image: "xdebug-php-apache2:1.0"
+    ports:
+      - "8080:80"
+    volumes:
+      - ./www:/var/www/html
+      - /home/ri-13/Downloads/pacific_test_export.sql:/var/www/html/pacific_test_export.sql
+      - ./wp/wp-config.php:/var/www/html/wp-config.php
+      - ./import-data.sh:/import-data.sh
+      - ./import-data-with-mysql.sh:/import-data-with-mysql.sh
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    depends_on:
+      - db
+    # command: >
+    #  sh -c "wp core version --allow-root && /import-data.sh  &&  apache2-foreground "
+    command: >
+     sh -c "/import-data-with-mysql.sh  &&  apache2-foreground "
+  db:
+    image: mysql:8
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: php_mvc
+      MYSQL_USER: php_mvc
+      MYSQL_PASSWORD: php_mvc
+
+volumes:
+  mysql-data:
